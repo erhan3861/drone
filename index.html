@@ -1,409 +1,928 @@
 <!DOCTYPE html>
 <html lang="tr">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modül 4 — Gökyüzünden Tarla: Drone ile Tarım</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;font-family:'Rajdhani',sans-serif}
-body{background:#0d1117;display:flex;flex-direction:column;color:#e8f4ff}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modül 4 — Gökyüzünden Tarla: Drone ile Tarım</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap"
+    rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
 
-.header{
-  background:linear-gradient(90deg,#0d1117,#0f1e2d,#0d1117);
-  border-bottom:2px solid rgba(100,180,255,0.2);
-  padding:8px 20px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.badge{font-family:'Orbitron',sans-serif;font-size:10px;background:rgba(100,180,255,0.15);border:1px solid rgba(100,180,255,0.4);color:#64b4ff;padding:3px 10px;border-radius:3px}
-.header h1{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;letter-spacing:1px;color:#e8f4ff}
-.header-hud{display:flex;gap:16px}
-.hval{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:#64b4ff}
-.hlbl{font-size:10px;color:rgba(232,244,255,0.4);letter-spacing:1px}
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Rajdhani', sans-serif
+    }
 
-.main{flex:1;display:grid;grid-template-columns:1fr 280px;gap:0;overflow:hidden;min-height:0}
+    body {
+      background: #0d1117;
+      display: flex;
+      flex-direction: column;
+      color: #e8f4ff
+    }
 
-/* DRONE VIEW */
-.drone-area{
-  position:relative;
-  background:#0a1420;
-  overflow:hidden;
-  display:flex;flex-direction:column;
-}
-.drone-toolbar{
-  background:rgba(13,17,23,0.95);
-  border-bottom:1px solid rgba(100,180,255,0.15);
-  padding:8px 16px;
-  display:flex;align-items:center;gap:12px;flex-shrink:0;
-}
-.tool-btn{
-  background:rgba(100,180,255,0.1);border:1px solid rgba(100,180,255,0.25);
-  color:#64b4ff;padding:5px 12px;border-radius:4px;font-family:'Rajdhani',sans-serif;
-  font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;
-}
-.tool-btn:hover,.tool-btn.active{background:rgba(100,180,255,0.25);border-color:#64b4ff}
-.drone-coords{margin-left:auto;font-family:'Orbitron',monospace;font-size:11px;color:rgba(100,180,255,0.6)}
+    .header {
+      background: linear-gradient(90deg, #0d1117, #0f1e2d, #0d1117);
+      border-bottom: 2px solid rgba(100, 180, 255, 0.2);
+      padding: 10px 20px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
 
-.canvas-wrap{flex:1;position:relative;overflow:hidden}
-canvas#droneCanvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+    .badge {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      background: rgba(100, 180, 255, 0.15);
+      border: 1px solid rgba(100, 180, 255, 0.4);
+      color: #64b4ff;
+      padding: 4px 10px;
+      border-radius: 3px;
+      letter-spacing: 1px;
+    }
 
-/* HUD overlays */
-.corner-hud{
-  position:absolute;pointer-events:none;
-  font-family:'Orbitron',monospace;font-size:10px;
-  color:rgba(100,180,255,0.7);
-}
-.hud-tl{top:12px;left:12px}
-.hud-tr{top:12px;right:12px;text-align:right}
-.hud-bl{bottom:12px;left:12px}
-.hud-br{bottom:12px;right:12px;text-align:right}
-.hud-line{margin:2px 0}
+    .header h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #e8f4ff
+    }
 
-/* DRONE CURSOR */
-.drone-cursor{
-  position:absolute;
-  width:40px;height:40px;
-  pointer-events:none;
-  transform:translate(-50%,-50%);
-  transition:left 0.1s,top 0.1s;
-}
+    /* Yeni Buton Stilleri */
+    .icon-btn {
+      background: rgba(100, 180, 255, 0.1);
+      border: 1px solid rgba(100, 180, 255, 0.3);
+      color: #64b4ff;
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-/* SCAN INDICATOR */
-.scan-ring{
-  position:absolute;
-  border-radius:50%;
-  border:2px solid rgba(100,180,255,0.6);
-  animation:scanExpand 1.5s ease-out infinite;
-  pointer-events:none;
-}
-@keyframes scanExpand{
-  from{width:20px;height:20px;opacity:0.8;margin:-10px}
-  to{width:100px;height:100px;opacity:0;margin:-50px}
-}
+    .icon-btn:hover {
+      background: rgba(100, 180, 255, 0.25);
+      border-color: #64b4ff;
+      color: #fff;
+    }
 
-/* RIGHT PANEL */
-.right-panel{
-  background:rgba(13,17,23,0.95);
-  border-left:1px solid rgba(100,180,255,0.15);
-  display:flex;flex-direction:column;
-  overflow:hidden;
-}
-.rp-section{border-bottom:1px solid rgba(100,180,255,0.1);padding:12px}
-.rp-title{font-family:'Orbitron',monospace;font-size:9px;font-weight:700;letter-spacing:2px;color:rgba(100,180,255,0.5);text-transform:uppercase;margin-bottom:8px}
+    .header-hud {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
 
-.finding-card{
-  background:rgba(100,180,255,0.06);
-  border:1px solid rgba(100,180,255,0.15);
-  border-radius:8px;padding:10px;margin-bottom:6px;
-  animation:fadeSlide 0.3s ease;
-}
-@keyframes fadeSlide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-.finding-type{font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:4px}
-.finding-desc{font-size:11px;color:rgba(232,244,255,0.65);line-height:1.4}
-.ft-critical{color:#ff4d4d}
-.ft-warning{color:#ffb300}
-.ft-normal{color:#00ff96}
-.ft-info{color:#64b4ff}
+    .hval {
+      font-family: 'Orbitron', monospace;
+      font-size: 16px;
+      font-weight: 700;
+      color: #64b4ff;
+      line-height: 1
+    }
 
-.progress-section{padding:12px}
-.scan-progress{height:6px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;margin-bottom:6px}
-.scan-bar{height:100%;background:linear-gradient(90deg,#64b4ff,#00d4ff);border-radius:3px;transition:width 0.5s}
-.scan-pct{font-family:'Orbitron',monospace;font-size:20px;font-weight:700;color:#64b4ff}
+    .hlbl {
+      font-size: 10px;
+      color: rgba(232, 244, 255, 0.5);
+      letter-spacing: 1px;
+      margin-top: 2px
+    }
 
-.mission-list{display:flex;flex-direction:column;gap:5px;padding:12px;flex:1;overflow-y:auto}
-.mission-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;padding:5px 8px;border-radius:6px;background:rgba(100,180,255,0.04)}
-.mission-icon{font-size:14px}
-.mission-done{text-decoration:line-through;opacity:0.4}
-.check{margin-left:auto;font-size:12px}
-</style>
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 0;
+      overflow: hidden;
+      min-height: 0
+    }
+
+    /* DRONE VIEW */
+    .drone-area {
+      position: relative;
+      background: #0a1420;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drone-toolbar {
+      background: rgba(13, 17, 23, 0.95);
+      border-bottom: 1px solid rgba(100, 180, 255, 0.15);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+
+    .tool-btn {
+      background: rgba(100, 180, 255, 0.05);
+      border: 1px solid rgba(100, 180, 255, 0.2);
+      color: #64b4ff;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+
+    .tool-btn:hover,
+    .tool-btn.active {
+      background: rgba(100, 180, 255, 0.25);
+      border-color: #64b4ff;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(100, 180, 255, 0.2)
+    }
+
+    .drone-coords {
+      margin-left: auto;
+      font-family: 'Orbitron', monospace;
+      font-size: 11px;
+      color: rgba(100, 180, 255, 0.6);
+      letter-spacing: 1px
+    }
+
+    .canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden
+    }
+
+    canvas#droneCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair
+    }
+
+    /* HUD overlays */
+    .corner-hud {
+      position: absolute;
+      pointer-events: none;
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      color: rgba(100, 180, 255, 0.7);
+      background: rgba(10, 20, 32, 0.6);
+      padding: 8px 12px;
+      border: 1px solid rgba(100, 180, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    .hud-tl {
+      top: 12px;
+      left: 12px
+    }
+
+    .hud-tr {
+      top: 12px;
+      right: 12px;
+      text-align: right
+    }
+
+    .hud-bl {
+      bottom: 12px;
+      left: 12px
+    }
+
+    .hud-line {
+      margin: 3px 0;
+      letter-spacing: 1px
+    }
+
+    /* RIGHT PANEL */
+    .right-panel {
+      background: rgba(13, 17, 23, 0.95);
+      border-left: 1px solid rgba(100, 180, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .rp-section {
+      border-bottom: 1px solid rgba(100, 180, 255, 0.1);
+      padding: 14px
+    }
+
+    .rp-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: rgba(100, 180, 255, 0.6);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .finding-card {
+      background: rgba(100, 180, 255, 0.04);
+      border: 1px solid rgba(100, 180, 255, 0.15);
+      border-left: 3px solid #64b4ff;
+      border-radius: 4px;
+      padding: 10px;
+      margin-bottom: 8px;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    @keyframes fadeSlide {
+      from {
+        opacity: 0;
+        transform: translateY(-6px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .finding-type {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+      text-transform: uppercase
+    }
+
+    .finding-desc {
+      font-size: 12px;
+      color: rgba(232, 244, 255, 0.7);
+      line-height: 1.4
+    }
+
+    .ft-critical {
+      color: #ff4d4d;
+      border-left-color: #ff4d4d;
+    }
+
+    .ft-warning {
+      color: #ffb300;
+      border-left-color: #ffb300;
+    }
+
+    .ft-normal {
+      color: #00ff96;
+      border-left-color: #00ff96;
+    }
+
+    .scan-progress {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      border: 1px solid rgba(100, 180, 255, 0.1)
+    }
+
+    .scan-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #0055ff, #00d4ff);
+      transition: width 0.5s
+    }
+
+    .scan-pct {
+      font-family: 'Orbitron', monospace;
+      font-size: 24px;
+      font-weight: 700;
+      color: #00d4ff;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.3)
+    }
+
+    .mission-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 14px;
+      flex: 1;
+      overflow-y: auto
+    }
+
+    .mission-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 10px;
+      border-radius: 4px;
+      background: rgba(100, 180, 255, 0.03);
+      border: 1px solid rgba(100, 180, 255, 0.08);
+      transition: 0.3s
+    }
+
+    .mission-item.completed {
+      background: rgba(0, 255, 150, 0.05);
+      border-color: rgba(0, 255, 150, 0.2);
+      color: #00ff96;
+    }
+
+    .mission-icon {
+      font-size: 16px
+    }
+
+    .check {
+      margin-left: auto;
+      font-size: 14px
+    }
+
+    /* MODALS (HUD Sytle) */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 10, 15, 0.85);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s
+    }
+
+    .modal.show {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .modal-card {
+      background: linear-gradient(145deg, #0a1420, #0d1117);
+      border: 1px solid #64b4ff;
+      box-shadow: 0 0 30px rgba(100, 180, 255, 0.15);
+      border-radius: 8px;
+      padding: 32px;
+      max-width: 550px;
+      width: 90%;
+      transform: scale(0.9);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .modal.show .modal-card {
+      transform: scale(1)
+    }
+
+    .modal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #0055ff, #00d4ff);
+    }
+
+    .info-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      color: #00d4ff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: 1px;
+    }
+
+    .info-section {
+      background: rgba(100, 180, 255, 0.03);
+      border: 1px solid rgba(100, 180, 255, 0.1);
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 4px;
+    }
+
+    .info-section h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 12px;
+      color: #64b4ff;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .info-step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .step-icon {
+      font-size: 20px;
+      background: rgba(100, 180, 255, 0.1);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      border: 1px solid rgba(100, 180, 255, 0.2);
+      flex-shrink: 0;
+    }
+
+    .step-text {
+      font-size: 14px;
+      color: rgba(232, 244, 255, 0.8);
+      line-height: 1.5;
+      padding-top: 4px;
+    }
+
+    .badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .badge-item {
+      background: rgba(100, 180, 255, 0.1);
+      border: 1px solid rgba(100, 180, 255, 0.3);
+      color: #64b4ff;
+      padding: 4px 10px;
+      border-radius: 2px;
+      font-size: 11px;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1px;
+    }
+
+    .modal-btn {
+      background: rgba(100, 180, 255, 0.15);
+      border: 1px solid #64b4ff;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      padding: 12px;
+      width: 100%;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+    }
+
+    .modal-btn:hover {
+      background: #64b4ff;
+      color: #000;
+      box-shadow: 0 0 15px rgba(100, 180, 255, 0.4);
+    }
+
+    /* End Screen */
+    .end-screen {
+      text-align: center;
+      padding: 10px;
+    }
+
+    .end-icon {
+      font-size: 64px;
+      margin-bottom: 10px;
+      animation: floatIcon 2s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-10px)
+      }
+    }
+
+    .end-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 28px;
+      color: #00ff96;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+
+    .end-desc {
+      font-size: 14px;
+      color: rgba(232, 244, 255, 0.7);
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .secret-box {
+      background: rgba(0, 255, 150, 0.05);
+      border: 1px dashed #00ff96;
+      padding: 20px;
+      margin-bottom: 24px;
+      border-radius: 4px;
+    }
+
+    .secret-label {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 10px;
+      color: #00ff96;
+      letter-spacing: 3px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    .secret-code {
+      font-family: 'Orbitron', monospace;
+      font-size: 36px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 255, 150, 0.5);
+      letter-spacing: 4px;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="header">
-  <div style="display:flex;align-items:center;gap:12px">
-    <span class="badge">MODÜL 4</span>
-    <h1>🚁 DRONE İLE TARLA TARAMA</h1>
-  </div>
-  <div class="header-hud">
-    <div><div class="hval" id="altVal">42</div><div class="hlbl">YÜKSEKLİK (m)</div></div>
-    <div><div class="hval" id="batVal">87</div><div class="hlbl">BATARYA %</div></div>
-    <div><div class="hval" id="scanVal">0</div><div class="hlbl">TARANAN (ha)</div></div>
-    <div><div class="hval" id="findVal">0</div><div class="hlbl">BULGULAR</div></div>
-  </div>
-</div>
-
-<div class="main">
-  <div class="drone-area">
-    <div class="drone-toolbar">
-      <button class="tool-btn active" id="btnRGB" onclick="setMode('rgb',this)">🎨 RGB Kamera</button>
-      <button class="tool-btn" id="btnNDVI" onclick="setMode('ndvi',this)">🌿 NDVI</button>
-      <button class="tool-btn" id="btnThermal" onclick="setMode('thermal',this)">🔥 Termal</button>
-      <button class="tool-btn" id="btnMoisture" onclick="setMode('moisture',this)">💧 Nem Haritası</button>
-      <div class="drone-coords">LAT: <span id="lat">38.1234</span> | LON: <span id="lon">35.6789</span> | ALT: <span id="altHud">42m</span></div>
+  <div class="header">
+    <div style="display:flex;align-items:center;gap:16px">
+      <button class="icon-btn" onclick="openInfoModal()">ℹ️ BİLGİ</button>
+      <span class="badge">MODÜL 4</span>
+      <h1>🚁 DRONE İLE TARLA TARAMA</h1>
     </div>
-    <div class="canvas-wrap">
-      <canvas id="droneCanvas"></canvas>
-      <div class="corner-hud hud-tl">
-        <div class="hud-line">DRONE-01 ██████░░ 87%</div>
-        <div class="hud-line">GPS FIX: ✅ 12 SAT</div>
-        <div class="hud-line">RÜZGAR: 3.2 m/s NE</div>
+
+    <div style="display:flex;align-items:center;gap:24px">
+      <div class="header-hud">
+        <div style="text-align:center">
+          <div class="hval" id="altVal">42</div>
+          <div class="hlbl">YÜKSEKLİK(m)</div>
+        </div>
+        <div style="text-align:center">
+          <div class="hval" id="batVal">87</div>
+          <div class="hlbl">BATARYA %</div>
+        </div>
+        <div style="text-align:center">
+          <div class="hval" id="scanVal">0</div>
+          <div class="hlbl">TARANAN(ha)</div>
+        </div>
       </div>
-      <div class="corner-hud hud-tr">
-        <div class="hud-line" id="modeLabel">MOD: RGB KAMERA</div>
-        <div class="hud-line">ÇÖZÜNÜRLÜK: 5cm/px</div>
-        <div class="hud-line" id="timeLabel">TARAMA: 0:00</div>
+      <button class="icon-btn" id="fsBtn" onclick="toggleFullScreen()">⛶ TAM EKRAN</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="drone-area">
+      <div class="drone-toolbar">
+        <button class="tool-btn active" id="btnRGB" onclick="setMode('rgb',this)">🎨 RGB Kamera</button>
+        <button class="tool-btn" id="btnNDVI" onclick="setMode('ndvi',this)">🌿 NDVI (Canlılık)</button>
+        <button class="tool-btn" id="btnThermal" onclick="setMode('thermal',this)">🔥 Termal</button>
+        <button class="tool-btn" id="btnMoisture" onclick="setMode('moisture',this)">💧 Nem Haritası</button>
+        <div class="drone-coords">LAT: <span id="lat">38.1234</span> | LON: <span id="lon">35.6789</span> | ALT: <span
+            id="altHud">42m</span></div>
       </div>
-      <div class="corner-hud hud-bl">
-        <div class="hud-line">🖱️ Fareyi hareket ettir → drone süz</div>
-        <div class="hud-line">🖱️ Tıkla → Noktayı tara</div>
+      <div class="canvas-wrap">
+        <canvas id="droneCanvas"></canvas>
+        <div class="corner-hud hud-tl">
+          <div class="hud-line" style="color:#00d4ff">DRONE-01 BAĞLANTISI AKTİF</div>
+          <div class="hud-line">GPS FIX: ✅ 12 SAT</div>
+          <div class="hud-line">RÜZGAR: 3.2 m/s NE</div>
+        </div>
+        <div class="corner-hud hud-tr">
+          <div class="hud-line" id="modeLabel" style="color:#00d4ff">MOD: RGB KAMERA</div>
+          <div class="hud-line">ÇÖZÜNÜRLÜK: 5cm/px</div>
+          <div class="hud-line" id="timeLabel">SÜRE: 0:00</div>
+        </div>
+        <div class="corner-hud hud-bl">
+          <div class="hud-line">► Fareyi hareket ettirerek süzül</div>
+          <div class="hud-line">► Tıklayarak detaylı alan taraması yap</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="rp-section">
+        <div class="rp-title">📡 Tarama İlerlemesi</div>
+        <div class="scan-pct" id="scanPct">0%</div>
+        <div class="scan-progress">
+          <div class="scan-bar" id="scanBar" style="width:0%"></div>
+        </div>
+        <div style="font-size:11px;color:rgba(232,244,255,0.4);">Hedef: Operasyon alanını tamamen tara</div>
+      </div>
+
+      <div class="rp-section" style="flex:1;overflow-y:auto;border-bottom:none; min-height:180px;">
+        <div class="rp-title">🔍 Tespit Edilen Bulgular (<span id="findVal">0</span>/5)</div>
+        <div id="findings">
+          <div style="font-size:12px;color:rgba(255,255,255,0.2);text-align:center;margin-top:20px;font-style:italic;">
+            Henüz bulgu yok...</div>
+        </div>
+      </div>
+
+      <div class="mission-list">
+        <div class="rp-title">🎯 Uçuş Görevleri</div>
+        <div class="mission-item" id="m1"><span class="mission-icon">🗺️</span><span>Tarlanın %50'sini tara</span><span
+            class="check" id="c1">⬜</span></div>
+        <div class="mission-item" id="m2"><span class="mission-icon">🦠</span><span>Hastalıklı bölgeyi bul</span><span
+            class="check" id="c2">⬜</span></div>
+        <div class="mission-item" id="m3"><span class="mission-icon">💧</span><span>Nem haritasını
+            aktifleştir</span><span class="check" id="c3">⬜</span></div>
+        <div class="mission-item" id="m4"><span class="mission-icon">🔥</span><span>Termal kameraya geç</span><span
+            class="check" id="c4">⬜</span></div>
+        <div class="mission-item" id="m5"><span class="mission-icon">📌</span><span>3 farklı bulgu tespit et</span><span
+            class="check" id="c5">⬜</span></div>
       </div>
     </div>
   </div>
 
-  <div class="right-panel">
-    <div class="rp-section">
-      <div class="rp-title">📊 Tarama İlerlemesi</div>
-      <div class="scan-pct" id="scanPct">0%</div>
-      <div class="scan-progress"><div class="scan-bar" id="scanBar" style="width:0%"></div></div>
-      <div style="font-size:11px;color:rgba(232,244,255,0.4);margin-top:4px">Tüm alanı tara → misyonu tamamla</div>
-    </div>
+  <div class="modal" id="infoModal">
+    <div class="modal-card">
+      <div class="info-title">ℹ️ UÇUŞ REHBERİ VE HEDEFLER</div>
 
-    <div class="rp-section" style="flex:1;overflow-y:auto;border-bottom:none">
-      <div class="rp-title">🔍 Bulgular</div>
-      <div id="findings"></div>
-    </div>
+      <div class="info-section">
+        <h3>NASIL OYNANIR?</h3>
+        <div class="info-step">
+          <div class="step-icon">🖱️</div>
+          <div class="step-text"><strong>Sahayı Tara:</strong> Mouse ile haritada gezinerek sisli (karanlık) alanları
+            aydınlat. Tıklayarak daha geniş alanı tara.</div>
+        </div>
+        <div class="info-step">
+          <div class="step-icon">🎛️</div>
+          <div class="step-text"><strong>Sensörleri Kullan:</strong> Üstteki menüden Termal, NDVI ve Nem kameralarına
+            geçerek çıplak gözle (RGB) görünmeyen sorunları tespit et.</div>
+        </div>
+        <div class="info-step">
+          <div class="step-icon">✅</div>
+          <div class="step-text"><strong>Görevleri Bitir:</strong> Sağ paneldeki 5 görevi tamamla, arazideki bulguları
+            topla ve modül şifresini aç!</div>
+        </div>
+      </div>
 
-    <div class="mission-list">
-      <div class="rp-title">🎯 Görevler</div>
-      <div class="mission-item" id="m1"><span class="mission-icon">🟡</span><span>Tarlanın %50'sini tara</span><span class="check" id="c1">⬜</span></div>
-      <div class="mission-item" id="m2"><span class="mission-icon">🔴</span><span>Hastalıklı bölgeyi tespit et</span><span class="check" id="c2">⬜</span></div>
-      <div class="mission-item" id="m3"><span class="mission-icon">💧</span><span>Nem haritasını aktifleştir</span><span class="check" id="c3">⬜</span></div>
-      <div class="mission-item" id="m4"><span class="mission-icon">🌡️</span><span>Termal görüntü al</span><span class="check" id="c4">⬜</span></div>
-      <div class="mission-item" id="m5"><span class="mission-icon">🏆</span><span>3 farklı bulgu bul</span><span class="check" id="c5">⬜</span></div>
+      <div class="info-section">
+        <h3>MAARİF MODELİ KAZANIMLARI</h3>
+        <div class="badge-list">
+          <span class="badge-item">Uzaktan Algılama</span>
+          <span class="badge-item">Mekansal Analiz</span>
+          <span class="badge-item">Veriye Dayalı Sorun Çözme</span>
+          <span class="badge-item">Görsel Okuryazarlık</span>
+        </div>
+      </div>
+
+      <button class="modal-btn" onclick="closeInfoModal()">SİSTEMİ BAŞLAT</button>
     </div>
   </div>
-</div>
 
-<script>
-const canvas = document.getElementById('droneCanvas');
-const ctx = canvas.getContext('2d');
-let mode = 'rgb';
-let droneX = 0.5, droneY = 0.5;
-let scanned = new Set();
-let scanPct = 0;
-let findings = [];
-let elapsed = 0;
-let m3done=false,m4done=false;
+  <div class="modal" id="endModal">
+    <div class="modal-card end-screen">
+      <div class="end-icon">🚁</div>
+      <div class="end-title">GÖREV TAMAMLANDI</div>
+      <div class="end-desc">Harika bir iş çıkardın pilot! Tarladaki tüm problemleri tespit ettin ve sensörleri doğru bir
+        şekilde kullandın. Elde ettiğin bu veriler sayesinde çiftçi %40 ilaç tasarrufu sağlayacak.</div>
 
-const GRID = 20;
+      <div class="secret-box">
+        <div class="secret-label">GİZLİ ŞİFRE KİLİDİ AÇILDI</div>
+        <div class="secret-code">AERO-SCAN-4</div>
+      </div>
 
-// Predefined field features
-const features = [
-  {gx:4,gy:3,type:'disease',label:'Yaprak Pası',desc:'Fungal enfeksiyon tespit edildi. Acil fungusit uygulaması gerekli.',icon:'🍄',cls:'ft-critical'},
-  {gx:12,gy:8,type:'drought',label:'Su Stresi',desc:'Bu bölgede bitki susuzluk belirtisi gösteriyor.',icon:'🌵',cls:'ft-warning'},
-  {gx:7,gy:14,type:'pest',label:'Zararlı Tespiti',desc:'Böcek hasarı izleri. Hedefli ilaçlama önerilir.',icon:'🦗',cls:'ft-critical'},
-  {gx:16,gy:5,type:'healthy',label:'Sağlıklı Alan',desc:'Bu parselde bitki gelişimi mükemmel.',icon:'🌾',cls:'ft-normal'},
-  {gx:2,gy:11,type:'wet',label:'Aşırı Sulak',desc:'Drenaj sorunu olabilir, kök çürümesi riski.',icon:'💦',cls:'ft-warning'},
-];
+      <button class="modal-btn" onclick="location.reload()">YENİDEN TARAMA YAP</button>
+    </div>
+  </div>
 
-function resize(){
-  const wrap = canvas.parentElement;
-  canvas.width = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
-  drawField();
-}
+  <script>
+    const canvas = document.getElementById('droneCanvas');
+    const ctx = canvas.getContext('2d');
+    let mode = 'rgb';
+    let droneX = 0.5, droneY = 0.5;
+    let scanned = new Set();
+    let scanPct = 0;
+    let findings = [];
+    let elapsed = 0;
+    let completedMissions = 0; // Başarı kontrolü için
 
-function getCellSize(){
-  return {w: canvas.width/GRID, h: canvas.height/GRID};
-}
+    const GRID = 20;
 
-function drawField(){
-  const {w,h} = getCellSize();
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+    const features = [
+      { gx: 4, gy: 3, type: 'disease', label: 'Yaprak Pası', desc: 'Fungal enfeksiyon tespit edildi. Sadece bu bölgeye ilaçlama yapılmalı.', icon: '🦠', cls: 'ft-critical' },
+      { gx: 12, gy: 8, type: 'drought', label: 'Su Stresi', desc: 'Toprak kuru, bitkiler susuzluk çekiyor.', icon: '🌵', cls: 'ft-warning' },
+      { gx: 7, gy: 14, type: 'pest', label: 'Zararlı Tespiti', desc: 'Böcek hasarı izleri. Algoritma böcek türünü tarıyor.', icon: '🦗', cls: 'ft-critical' },
+      { gx: 16, gy: 5, type: 'healthy', label: 'Sağlıklı Alan', desc: 'NDVI endeksi yüksek. Gelişim mükemmel.', icon: '🌿', cls: 'ft-normal' },
+      { gx: 2, gy: 11, type: 'wet', label: 'Aşırı Sulak', desc: 'Drenaj sorunu. Fazla su kök çürümesine yol açabilir.', icon: '💧', cls: 'ft-warning' },
+    ];
 
-  for(let gx=0;gx<GRID;gx++){
-    for(let gy=0;gy<GRID;gy++){
-      const key=`${gx},${gy}`;
-      const isScanned = scanned.has(key);
-      const feat = features.find(f=>f.gx===gx&&f.gy===gy);
-
-      let fill;
-      if(!isScanned){
-        fill = '#1a2030'; // fog of war
+    /* --- Tam Ekran / UI İşlemleri --- */
+    function toggleFullScreen() {
+      const elem = document.documentElement;
+      const btn = document.getElementById('fsBtn');
+      if (!document.fullscreenElement) {
+        if (elem.requestFullscreen) elem.requestFullscreen();
+        btn.textContent = "🗗 KÜÇÜLT";
       } else {
-        fill = getModeColor(gx,gy,mode,feat);
-      }
-
-      ctx.fillStyle=fill;
-      ctx.fillRect(gx*w,gy*h,w-1,h-1);
-
-      if(isScanned && feat){
-        ctx.font = `${Math.min(w,h)*0.5}px serif`;
-        ctx.textAlign='center';
-        ctx.textBaseline='middle';
-        ctx.fillText(feat.icon, gx*w+w/2, gy*h+h/2);
+        if (document.exitFullscreen) document.exitFullscreen();
+        btn.textContent = "⛶ TAM EKRAN";
       }
     }
-  }
+    function openInfoModal() { document.getElementById('infoModal').classList.add('show'); }
+    function closeInfoModal() { document.getElementById('infoModal').classList.remove('show'); }
 
-  // Draw drone
-  const dx = droneX * canvas.width;
-  const dy = droneY * canvas.height;
-  ctx.save();
-  ctx.translate(dx,dy);
-  ctx.shadowColor='rgba(100,180,255,0.8)';
-  ctx.shadowBlur=15;
-  ctx.fillStyle='rgba(100,180,255,0.9)';
-  ctx.beginPath();
-  ctx.arc(0,0,8,0,Math.PI*2);
-  ctx.fill();
-  ctx.strokeStyle='rgba(100,180,255,0.4)';
-  ctx.lineWidth=1;
-  ctx.setLineDash([4,4]);
-  ctx.beginPath();ctx.moveTo(-20,0);ctx.lineTo(20,0);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(0,20);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.restore();
+    /* --- Oyun Çizim ve Mantığı --- */
+    function resize() {
+      const wrap = canvas.parentElement;
+      canvas.width = wrap.clientWidth;
+      canvas.height = wrap.clientHeight;
+      drawField();
+    }
 
-  // Scan radius
-  ctx.strokeStyle='rgba(100,180,255,0.3)';
-  ctx.lineWidth=1;
-  ctx.beginPath();
-  ctx.arc(dx,dy,Math.min(w,h)*1.5,0,Math.PI*2);
-  ctx.stroke();
-}
+    function getCellSize() { return { w: canvas.width / GRID, h: canvas.height / GRID }; }
 
-function getModeColor(gx,gy,mode,feat){
-  const seed = (gx*17+gy*31)%100;
-  switch(mode){
-    case 'rgb': {
-      if(feat?.type==='disease') return '#5a3a1a';
-      if(feat?.type==='drought') return '#8b7355';
-      if(feat?.type==='pest') return '#4a3a1a';
-      if(feat?.type==='wet') return '#2a4a3a';
-      const g = 80+seed*0.8;
-      return `rgb(${40+seed*0.3},${g},${30+seed*0.2})`;
-    }
-    case 'ndvi': {
-      if(feat?.type==='disease'||feat?.type==='pest') return `rgb(${180-seed},${50+seed*0.3},0)`;
-      if(feat?.type==='drought') return `rgb(${200-seed},${120+seed*0.4},0)`;
-      if(feat?.type==='wet') return `rgb(0,${140+seed*0.6},0)`;
-      const v=150+seed*0.5;
-      return `rgb(0,${v},0)`;
-    }
-    case 'thermal': {
-      if(feat?.type==='drought'||feat?.type==='disease') return `rgb(${220+seed*0.3},${40+seed*0.3},0)`;
-      const r=80+seed;const b=180-seed;
-      return `rgb(${r},${50+seed*0.5},${b})`;
-    }
-    case 'moisture': {
-      if(feat?.type==='wet') return '#0066ff';
-      if(feat?.type==='drought') return `rgb(${200+seed*0.3},${100+seed*0.3},0)`;
-      const b=100+seed;
-      return `rgb(0,${60+seed*0.4},${b})`;
-    }
-    default: return '#2a3a2a';
-  }
-}
+    function drawField() {
+      const { w, h } = getCellSize();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function scanArea(cx,cy){
-  const {w,h} = getCellSize();
-  const radius = 2;
-  let newFound = false;
-  for(let dx=-radius;dx<=radius;dx++){
-    for(let dy=-radius;dy<=radius;dy++){
-      const gx=cx+dx, gy=cy+dy;
-      if(gx>=0&&gx<GRID&&gy>=0&&gy<GRID){
-        const key=`${gx},${gy}`;
-        if(!scanned.has(key)){
-          scanned.add(key);
-          newFound=true;
-        }
-        // Check for feature at exact cell
-        const feat=features.find(f=>f.gx===gx&&f.gy===gy);
-        if(feat && !findings.find(f=>f.gx===gx&&f.gy===gy)){
-          findings.push(feat);
-          addFinding(feat);
-          document.getElementById('findVal').textContent=findings.length;
-          if(findings.length>=3) completeMission('c5');
-          if(feat.type==='disease'||feat.type==='pest') completeMission('c2');
+      for (let gx = 0; gx < GRID; gx++) {
+        for (let gy = 0; gy < GRID; gy++) {
+          const key = `${gx},${gy}`;
+          const isScanned = scanned.has(key);
+          const feat = features.find(f => f.gx === gx && f.gy === gy);
+
+          let fill = !isScanned ? '#0a1018' : getModeColor(gx, gy, mode, feat);
+          ctx.fillStyle = fill;
+          ctx.fillRect(gx * w, gy * h, w - 1, h - 1);
+
+          if (isScanned && feat) {
+            ctx.font = `${Math.min(w, h) * 0.6}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(feat.icon, gx * w + w / 2, gy * h + h / 2);
+          }
         }
       }
+
+      // Drone Çizimi
+      const dx = droneX * canvas.width;
+      const dy = droneY * canvas.height;
+      ctx.save();
+      ctx.translate(dx, dy);
+      ctx.shadowColor = '#00d4ff';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,212,255,0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(16, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -16); ctx.lineTo(0, 16); ctx.stroke();
+      ctx.restore();
+
+      // Tarama Çemberi
+      ctx.strokeStyle = 'rgba(0,212,255,0.2)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(dx, dy, Math.min(w, h) * 1.8, 0, Math.PI * 2);
+      ctx.stroke();
     }
-  }
-  if(newFound){
-    scanPct=Math.round((scanned.size/(GRID*GRID))*100);
-    document.getElementById('scanPct').textContent=scanPct+'%';
-    document.getElementById('scanBar').style.width=scanPct+'%';
-    document.getElementById('scanVal').textContent=(scanPct*0.5).toFixed(1);
-    if(scanPct>=50) completeMission('c1');
-  }
-}
 
-function addFinding(feat){
-  const div=document.createElement('div');
-  div.className='finding-card';
-  div.innerHTML=`<div class="finding-type ${feat.cls}">${feat.icon} ${feat.label}</div><div class="finding-desc">${feat.desc}</div>`;
-  document.getElementById('findings').prepend(div);
-}
+    function getModeColor(gx, gy, mode, feat) {
+      const seed = (gx * 17 + gy * 31) % 100;
+      switch (mode) {
+        case 'rgb':
+          if (feat?.type === 'disease') return '#4a3a2a';
+          if (feat?.type === 'drought') return '#6b5a45';
+          if (feat?.type === 'pest') return '#3a4a2a';
+          if (feat?.type === 'wet') return '#2a3a4a';
+          return `rgb(${30 + seed * 0.2},${60 + seed * 0.5},${40 + seed * 0.3})`;
+        case 'ndvi':
+          if (feat?.type === 'disease' || feat?.type === 'pest') return `rgb(${150 - seed},${30 + seed * 0.2},0)`;
+          if (feat?.type === 'drought') return `rgb(${180 - seed},${100 + seed * 0.3},0)`;
+          if (feat?.type === 'wet') return `rgb(0,${120 + seed * 0.5},0)`;
+          return `rgb(0,${160 + seed * 0.4},0)`;
+        case 'thermal':
+          if (feat?.type === 'drought' || feat?.type === 'disease') return `rgb(${220 + seed * 0.3},${30 + seed * 0.3},0)`;
+          return `rgb(${60 + seed},${40 + seed * 0.4},${160 - seed})`;
+        case 'moisture':
+          if (feat?.type === 'wet') return '#0055ff';
+          if (feat?.type === 'drought') return `rgb(${180 + seed * 0.3},${80 + seed * 0.3},0)`;
+          return `rgb(0,${50 + seed * 0.3},${120 + seed})`;
+        default: return '#111';
+      }
+    }
 
-function completeMission(id){
-  const el=document.getElementById(id);
-  if(el&&el.textContent==='⬜'){
-    el.textContent='✅';
-  }
-}
+    function scanArea(cx, cy) {
+      const radius = 2;
+      let newFound = false;
+      for (let dx = -radius; dx <= radius; dx++) {
+        for (let dy = -radius; dy <= radius; dy++) {
+          const gx = cx + dx, gy = cy + dy;
+          if (gx >= 0 && gx < GRID && gy >= 0 && gy < GRID) {
+            const key = `${gx},${gy}`;
+            if (!scanned.has(key)) {
+              scanned.add(key);
+              newFound = true;
+            }
+            const feat = features.find(f => f.gx === gx && f.gy === gy);
+            if (feat && !findings.find(f => f.gx === gx && f.gy === gy)) {
+              findings.push(feat);
+              addFinding(feat);
+              document.getElementById('findVal').textContent = findings.length;
+              if (findings.length >= 3) completeMission('c5');
+              if (feat.type === 'disease' || feat.type === 'pest') completeMission('c2');
+            }
+          }
+        }
+      }
+      if (newFound) {
+        scanPct = Math.round((scanned.size / (GRID * GRID)) * 100);
+        document.getElementById('scanPct').textContent = scanPct + '%';
+        document.getElementById('scanBar').style.width = scanPct + '%';
+        document.getElementById('scanVal').textContent = (scanPct * 0.5).toFixed(1);
+        if (scanPct >= 50) completeMission('c1');
+      }
+    }
 
-canvas.addEventListener('mousemove',e=>{
-  const rect=canvas.getBoundingClientRect();
-  droneX=(e.clientX-rect.left)/canvas.width;
-  droneY=(e.clientY-rect.top)/canvas.height;
-  const {w,h}=getCellSize();
-  const gx=Math.floor(droneX*GRID);
-  const gy=Math.floor(droneY*GRID);
-  scanArea(gx,gy);
-  document.getElementById('lat').textContent=(38.1200+droneY*0.05).toFixed(4);
-  document.getElementById('lon').textContent=(35.6700+droneX*0.05).toFixed(4);
-  drawField();
-});
+    function addFinding(feat) {
+      const fContainer = document.getElementById('findings');
+      if (findings.length === 1) fContainer.innerHTML = ''; // Temizle
+      const div = document.createElement('div');
+      div.className = 'finding-card';
+      div.innerHTML = `<div class="finding-type ${feat.cls}">${feat.icon} ${feat.label}</div><div class="finding-desc">${feat.desc}</div>`;
+      fContainer.prepend(div);
+    }
 
-canvas.addEventListener('click',e=>{
-  const rect=canvas.getBoundingClientRect();
-  const gx=Math.floor((e.clientX-rect.left)/canvas.width*GRID);
-  const gy=Math.floor((e.clientY-rect.top)/canvas.height*GRID);
-  // Scan larger area on click
-  for(let dx=-3;dx<=3;dx++) for(let dy=-3;dy<=3;dy++) scanned.add(`${gx+dx},${gy+dy}`);
-  scanArea(gx,gy);
-  drawField();
-});
+    function completeMission(id) {
+      const el = document.getElementById(id);
+      if (el && el.textContent === '⬜') {
+        el.textContent = '✅';
+        el.parentElement.classList.add('completed');
+        completedMissions++;
 
-function setMode(m, btn){
-  mode=m;
-  document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const labels={rgb:'RGB KAMERA',ndvi:'NDVI (Canlılık)',thermal:'TERMAL',moisture:'NEM HARİTASI'};
-  document.getElementById('modeLabel').textContent='MOD: '+labels[m];
-  if(m==='moisture') completeMission('c3');
-  if(m==='thermal') completeMission('c4');
-  drawField();
-}
+        // BAŞARI KONTROLÜ: 5 görevin 5'i de bittiyse
+        if (completedMissions === 5) {
+          setTimeout(() => {
+            document.getElementById('endModal').classList.add('show');
+          }, 1000);
+        }
+      }
+    }
 
-// Battery drain
-setInterval(()=>{
-  elapsed++;
-  const bat=Math.max(0,87-Math.floor(elapsed/10));
-  document.getElementById('batVal').textContent=bat;
-  const alt=40+Math.round(Math.sin(elapsed*0.3)*3);
-  document.getElementById('altVal').textContent=alt;
-  document.getElementById('altHud').textContent=alt+'m';
-  const mins=Math.floor(elapsed/60);
-  const secs=elapsed%60;
-  document.getElementById('timeLabel').textContent=`TARAMA: ${mins}:${secs.toString().padStart(2,'0')}`;
-},1000);
+    canvas.addEventListener('mousemove', e => {
+      const rect = canvas.getBoundingClientRect();
+      droneX = (e.clientX - rect.left) / canvas.width;
+      droneY = (e.clientY - rect.top) / canvas.height;
+      const gx = Math.floor(droneX * GRID);
+      const gy = Math.floor(droneY * GRID);
+      scanArea(gx, gy);
+      document.getElementById('lat').textContent = (38.1200 + droneY * 0.05).toFixed(4);
+      document.getElementById('lon').textContent = (35.6700 + droneX * 0.05).toFixed(4);
+      drawField();
+    });
 
-window.addEventListener('resize',resize);
-resize();
-</script>
+    canvas.addEventListener('click', e => {
+      const rect = canvas.getBoundingClientRect();
+      const gx = Math.floor((e.clientX - rect.left) / canvas.width * GRID);
+      const gy = Math.floor((e.clientY - rect.top) / canvas.height * GRID);
+      for (let dx = -3; dx <= 3; dx++) for (let dy = -3; dy <= 3; dy++) scanned.add(`${gx + dx},${gy + dy}`);
+      scanArea(gx, gy);
+      drawField();
+    });
+
+    function setMode(m, btn) {
+      mode = m;
+      document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const labels = { rgb: 'RGB KAMERA', ndvi: 'NDVI (Canlılık)', thermal: 'TERMAL', moisture: 'NEM HARİTASI' };
+      document.getElementById('modeLabel').textContent = 'MOD: ' + labels[m];
+      if (m === 'moisture') completeMission('c3');
+      if (m === 'thermal') completeMission('c4');
+      drawField();
+    }
+
+    // Telemetry update
+    setInterval(() => {
+      elapsed++;
+      const bat = Math.max(0, 87 - Math.floor(elapsed / 10));
+      document.getElementById('batVal').textContent = bat;
+      const alt = 40 + Math.round(Math.sin(elapsed * 0.3) * 3);
+      document.getElementById('altVal').textContent = alt;
+      document.getElementById('altHud').textContent = alt + 'm';
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      document.getElementById('timeLabel').textContent = `SÜRE: ${mins}:${secs.toString().padStart(2, '0')}`;
+    }, 1000);
+
+    window.addEventListener('resize', resize);
+    resize();
+  </script>
 </body>
+
 </html>
